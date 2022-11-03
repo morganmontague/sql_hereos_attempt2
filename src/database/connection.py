@@ -34,14 +34,32 @@ def execute_query(query, params=None):
 
 # ============== DONT EDIT ABOVE
 
+def show_abilities():
+    pp(execute_query("""
+                SELECT  h.name, string_agg(att.name, ' ') FROM heroes h
+                    JOIN abilities a ON a.hero_id = h.id
+                    JOIN ability_types att ON a.ability_type_id = att.id
+                    GROUP BY h.id;
+            """).fetchall()
+)
+
 def ability_random():
-    randomnumber = random.randint(1,7)
-    params = (randomnumber,)
-    query = """
+        random_number = random.randint(1,7)
+        params_ability = (random_number,)
+        query_get_ability = """
             SELECT name FROM ability_types
             WHERE id = %s
             """
-    result_ability = execute_query(query, params).fetchall()
+        result_ability = execute_query(query_get_ability, params_ability).fetchone()[0]
+
+def restart(hero_name):
+        restart_param = (hero_name,)
+        restart_query = """
+                        DELETE FROM heroes
+                        WHERE name = %s 
+                        """
+        execute_query(restart_query, restart_param)
+
 
 
 
@@ -62,8 +80,7 @@ def hero_create():
                     WHERE name = %s
                     """
         result_id = execute_query(query_get_id, params_get_id).fetchone()[0]
-    elif reset == 'n': restart()
-    else: print('mamba')
+    else: hero_create()
 
 
     confirm_id = input('Now let me guess your ability, first can you confirm your new hero is '+ str(result_id) + '.  (y/n):  ')
@@ -77,11 +94,9 @@ def hero_create():
         result_ability = execute_query(query_get_ability, params_ability).fetchone()[0]
     else: 
         print('ERROR ERROR, RESTART, DELETING YOUR DATA, RESTART')
-        restart_param = (hero_name)
-        restart_query = """
-                        DELETE %s FROM heroes 
-                        """
+        restart(hero_name)
         hero_create()
+
 
 
         
@@ -98,42 +113,52 @@ def hero_create():
         pp('Here are the current heroes and their abilities')
         show_abilities()
     else: 
-        print('fail')
-        restart_param = (hero_name)
-        restart_query = """
-                        DELETE FROM heroes
-                        WHERE  
-                        """
+        print('failure, restarting')
+        restart(hero_name)
         hero_create()
-    friends = input("Are you ready to make an enemy? (y/n):  ")
+
+
+
+    friends = input("Are you ready to make a friend? (y/n):  ")
     if friends == 'y':
-        print('need to get length of heroes list')
+        length_query = """
+                    SELECT COUNT(*) AS length_of_table FROM heroes
+                    """
+        result_length = execute_query(length_query,).fetchone()[0]
+        random_friend = random.randint(1,(int(result_length)-1))
+        set_friend_parma = (result_id, random_friend, 1)
+        set_friend_query = """
+                            INSERT INTO
+                            relationships (hero1_id, hero2_id, relationship_type_id)
+                            VALUES
+                            (%s, %s, %s);
+                            """
+        execute_query(set_friend_query, set_friend_parma)
+        show_friends_parma = (hero_name,)
+        show_friend_query = ("""SELECT h2.name FROM relationship_types rt
+                            JOIN relationships r ON rt.id = r.relationship_type_id
+                            JOIN heroes h1 ON r.hero1_id = h1.id 
+                            JOIN heroes h2 ON r.hero2_id = h2.id
+                            WHERE h1.name = %s
+                            """)
+        new_friend = execute_query(show_friend_query, show_friends_parma).fetchone()[0]
+        print(f"Your new friend's name is{new_friend}, you fight crime together, but one day you get into a silly fight over holes. Hope this doesn't grow too big.")
+    else:
+        pp(f'With no friends, {hero_name} dies of lonelyness')
+        restart(hero_name)
 
 
 
 
-# hero_create()
+hero_create()
 
-def restart(hero_name):
-        restart_param = (hero_name,)
-        restart_query = """
-                        DELETE FROM heroes
-                        WHERE name = %s 
-                        """
-        execute_query(restart_query, restart_param)
-        hero_create()
-restart('betty')
+
+# restart("test6")
+
 
 
 # create_connection("postgres", "postgres", "postgres")
-def show_abilities():
-    pp(execute_query("""
-                SELECT  h.name, string_agg(att.name, ' ') FROM heroes h
-                    JOIN abilities a ON a.hero_id = h.id
-                    JOIN ability_types att ON a.ability_type_id = att.id
-                    GROUP BY h.id;
-            """).fetchall()
-)
+
 # show_abilities()
 
 def show_friends(): 
