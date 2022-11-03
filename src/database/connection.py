@@ -52,22 +52,22 @@ def ability_random():
             """
         result_ability = execute_query(query_get_ability, params_ability).fetchone()[0]
 
-def restart(hero_name):
-        restart_param = (hero_name,)
-        restart_query = """
+def game_over(hero_name):
+        game_over_param = (hero_name,)
+        game_over_query = """
                         DELETE FROM heroes
                         WHERE name = %s 
                         """
-        execute_query(restart_query, restart_param)
+        execute_query(game_over_query, game_over_param)
 
 
 
 
 def hero_create():
     hero_name = input("What is your name? :  ")
-    about = input(hero_name + " could you give me a short description of yourself? :  ")
-    bio = input(hero_name + " do you have a backstory?:  ")
-    reset = input("Your name is " + hero_name + ' and you describe yourself as ' + about + ". Finally you say your background is " + bio + ". If this is correct, write yes and we will add you to the list of heroes. If you want to change anything, write no and we will restart. (y/n) :  ")
+    about = input(f"{hero_name} could you give me a short description of yourself? :  ")
+    bio = input(f"{hero_name} do you have a backstory?:  ")
+    reset = input(f"Your name is {hero_name} and you describe yourself as {about}. Finally you say your background is {bio}. If this is correct, write yes and we will add you to the list of heroes. If you want to change anything, write no and we will resart. (y/n) :  ")
     if reset == 'y':
         create_hero_params = (hero_name, about, bio)
         query_hero_create = """
@@ -83,7 +83,7 @@ def hero_create():
     else: hero_create()
 
 
-    confirm_id = input('Now let me guess your ability, first can you confirm your new hero is '+ str(result_id) + '.  (y/n):  ')
+    confirm_id = input('Now let me guess your ability, first can you confirm your new hero number is '+ str(result_id) + '.  (y/n):  ')
     if confirm_id == 'y':
         random_number = random.randint(1,7)
         params_ability = (random_number,)
@@ -93,14 +93,14 @@ def hero_create():
             """
         result_ability = execute_query(query_get_ability, params_ability).fetchone()[0]
     else: 
-        print('ERROR ERROR, RESTART, DELETING YOUR DATA, RESTART')
-        restart(hero_name)
+        print('ERROR ERROR, game_over, DELETING YOUR DATA, game_over')
+        game_over(hero_name)
         hero_create()
 
 
 
         
-    confirm_ability = input('I am now guessing your abilitiy is ' + str(result_ability)+'. (y/n):   ')
+    confirm_ability = input('Ha I bet your abilitiy is ' + str(result_ability)+'. (y/n):   ')
     if confirm_ability =='y':
         set_abilities_parma = (result_id, random_number)
         set_abilities_query = """
@@ -113,8 +113,8 @@ def hero_create():
         pp('Here are the current heroes and their abilities')
         show_abilities()
     else: 
-        print('failure, restarting')
-        restart(hero_name)
+        print('failure, game over')
+        game_over(hero_name)
         hero_create()
 
 
@@ -142,18 +142,39 @@ def hero_create():
                             WHERE h1.name = %s
                             """)
         new_friend = execute_query(show_friend_query, show_friends_parma).fetchone()[0]
-        print(f"Your new friend's name is{new_friend}, you fight crime together, but one day you get into a silly fight over holes. Hope this doesn't grow too big.")
+        print(f"Your new friend's name is {new_friend}, you fight crime together, but one day you get into a silly fight over holes. Hope this doesn't grow too big.")
     else:
         pp(f'With no friends, {hero_name} dies of lonelyness')
-        restart(hero_name)
+        game_over(hero_name)
 
-
+    
+    change_friendship = input(f"This stupid arguement about holes has caused a huge rift in your friendship with {new_friend}. They are livid you disagree with them and want to be enemies now. Will you admit that you and {new_friend} are now enemies?  (y/n) :  ")
+    if change_friendship == 'y':
+        update_friendship_params = (result_id,)
+        update_friendship_query = """
+                                update relationships
+                                set relationship_type_id = '2'
+                                where hero1_id = %s
+                                """
+        execute_query(update_friendship_query, update_friendship_params)
+        find_enemy_param = (result_id,)
+        find_enemy_query =("""SELECT h1.name, rt.name, h2.name FROM relationship_types rt
+                            JOIN relationships r ON rt.id = r.relationship_type_id
+                            JOIN heroes h1 ON r.hero1_id = h1.id 
+                            JOIN heroes h2 ON r.hero2_id = h2.id
+                            ORDER BY rt.name DESC;
+                            """)
+        change_result = execute_query(find_enemy_query, find_enemy_param).fetchall()
+        Print(change_result)
+    else:
+        pp(f'You continue to say you are friends and you think everything is fine. unbeknownst to you {new_friend} is really crazy about their opinion on holes. {new_friend} digs a hole and pushes you in and buries you alive... {new_friend} walks away and laughs, saying now there is no hole at all')
+        game_over(hero_name)
 
 
 hero_create()
 
 
-# restart("test6")
+
 
 
 
@@ -169,28 +190,4 @@ def show_friends():
                             ORDER BY rt.name DESC;""").fetchall())
 
 # show_friends()
-
-
-# def select_all():
-#     query = """
-#         SELECT * from heroes
-#     """
-
-#     list_of_heroes = execute_query(query).fetchall()
-#     print(list_of_heroes)
-#     for record in list_of_heroes:
-#         print(record[1])
-
-# select_all()
-
-
-
-# def testing_area():
-#     random_number = random.randint(1,7)
-#     params = (random_number,)
-#     query = """
-#             SELECT name FROM ability_types
-#             WHERE id = %s
-#             """
-#     result_ability = execute_query(query, params).fetchall()
 
