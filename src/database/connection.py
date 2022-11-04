@@ -67,7 +67,8 @@ def hero_create():
     hero_name = input("What is your name? :  ")
     about = input(f"{hero_name} could you give me a short description of yourself? :  ")
     bio = input(f"{hero_name} do you have a backstory?:  ")
-    reset = input(f"Your name is {hero_name} and you describe yourself as {about}. Finally you say your background is {bio}. If this is correct, write yes and we will add you to the list of heroes. If you want to change anything, write no and we will resart. (y/n) :  ")
+    pp(f"Your name is {hero_name} and you describe yourself as {about}. Finally you say your background is {bio}. If this is correct, write yes and we will add you to the list of heroes. If you want to change anything, write no and we will resart.")
+    reset = input('(y/n) : ')
     if reset == 'y':
         create_hero_params = (hero_name, about, bio)
         query_hero_create = """
@@ -146,6 +147,8 @@ def hero_create():
     else:
         pp(f'With no friends, {hero_name} dies of lonelyness')
         game_over(hero_name)
+        hero_create()
+        
 
     
     change_friendship = input(f"This stupid arguement about holes has caused a huge rift in your friendship with {new_friend}. They are livid you disagree with them and want to be enemies now. Will you admit that you and {new_friend} are now enemies?  (y/n) :  ")
@@ -162,12 +165,13 @@ def hero_create():
                             JOIN relationships r ON rt.id = r.relationship_type_id
                             JOIN heroes h1 ON r.hero1_id = h1.id 
                             JOIN heroes h2 ON r.hero2_id = h2.id
+                            WHERE hero1_id= %s
                             ORDER BY rt.name DESC;
                             """)
         change_result = execute_query(find_enemy_query, find_enemy_param).fetchall()
-        Print(change_result)
+        print(change_result)
     else:
-        pp(f'You continue to say you are friends and you think everything is fine. unbeknownst to you {new_friend} is really crazy about their opinion on holes. {new_friend} digs a hole and pushes you in and buries you alive... {new_friend} walks away and laughs, saying now there is no hole at all')
+        pp(f'You continue to say you are friends and you think everything is fine. Unbeknownst to you {new_friend} is really crazy about their opinion on holes. {new_friend} digs a hole and pushes you in and buries you alive... {new_friend} walks away and laughs, saying now there is no hole at all')
         game_over(hero_name)
 
 
